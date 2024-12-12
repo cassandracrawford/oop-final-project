@@ -1,0 +1,63 @@
+body[b-rxekmfv2gh] {
+}
+
+.add-client-popup[b-rxekmfv2gh] {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.add-client-content[b-rxekmfv2gh] {
+    background-color: #FDFDFD;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.button-container[b-rxekmfv2gh] {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    gap: 5px; 
+    margin-top: 30px; 
+    margin-bottom: 20px;
+}
+
+.btn[b-rxekmfv2gh] {
+    width: 220px;
+    height: 40px;
+    border-radius: 20px;
+}
+
+label[b-rxekmfv2gh] {
+    color: var(--Foundation-Blue-blue-500, #193D58);
+    font-family: Montserrat;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 700;
+}
+
+input[b-rxekmfv2gh], select[b-rxekmfv2gh] {
+    border: 1px solid #193D58;
+    border-radius: 5px;
+}
+
+input[b-rxekmfv2gh]::placeholder {
+    font-size: 12px;
+    color: #828488;
+    font-family: Montserrat;
+    font-style: italic;
+}
+
+select option[b-rxekmfv2gh] {
+    color: #193D58;
+    font-family: Montserrat;
+}

@@ -1,0 +1,210 @@
+﻿@page "/clients"
+@using FinalProject.Data
+@using Microsoft.Data.SqlClient
+@inject DatabaseConnection dbConnection
+
+<div class="clients-container">
+    <!--Client Page Header-->
+    <div class="clients-header">
+        <h1>Clients</h1>
+        <p>View and update client information</p>
+    </div>
+    <!--Add Client button-->
+    <div class="add-button">
+        <div class="add-client-button" @onclick="OpenAddClient">Add Client</div>
+       
+    </div>
+</div>
+
+<!--Input for search parameters and search button-->
+<div class="search-container">
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label for="clientID" class="form-label">Client ID:</label>
+            <input type="text" class="form-control" placeholder="Enter Client ID..." aria-label="Client ID" @bind="SearchClientID">
+        </div>
+        <div class="col-md-3">
+            <label for="clientName" class="form-label">Client Name:</label>
+            <input type="text" class="form-control" placeholder="Enter Client Name..." aria-label="Client Name" @bind="SearchClientName">
+        </div>
+    </div>
+    <div class="search-button" @onclick="SearchForClient">Search</div>
+</div>
+
+<!--For Add Client Popup-->
+<AddClient ShowAddClient="ShowAddClient" OnClose="HandleAddClientClose" OnClientAdded="HandleClient" OnShowToast="HandleShowToast" />
+
+<!--Table to display all customers or searched customers-->
+<div class="table-responsive table-container" >
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Customer ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Contact Number</th>
+                <th>Email</th>
+                <th>Discount</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (SearchCustomers.Any())
+            {
+                @foreach (Customer customer in SearchCustomers)
+                {
+                <tr>
+                    <td>@customer.CustomerID</td>
+                    <td>@customer.FirstName</td>
+                    <td>@customer.LastName</td>
+                    <td>@customer.PhoneNum</td>
+                    <td>@customer.EMail</td>
+                    <td>@($"{customer.Discount}%")</td>
+                    <td>@customer.ClientStatus</td>
+                    <td>
+                        <button class="btn btn-sm" @onclick="() => OpenUpdateClient(customer)">
+                                <span class="bi bi-pencil-fill" ></span>
+                        </button>
+                        <button class="btn btn-sm" @onclick="() => DeleteClient(customer.CustomerID)">
+                            <span class="bi bi-trash-fill"></span>
+                        </button>
+                    </td>
+                </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8">No Data Available</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!--For Update Client Popup-->
+<UpdateClient ShowUpdateClient="ShowUpdateClient" SelectedCustomer="SelectedCustomer" OnUpdate="HandleClient" OnClose=" HandleUpdateClientClose" OnShowToast="HandleShowToast" />
+
+<!-- Display toast notification for any success/error message -->
+@if (!string.IsNullOrEmpty(displayMessage))
+{
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header custom-toast-header">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                @displayMessage
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Customer> Customers; // For the list of all customers from database
+    private List<Customer> SearchCustomers = new(); // List of filtered customers 
+
+    // Flags to show or hide popup pages
+    private bool ShowAddClient = false; 
+    private bool ShowUpdateClient = false;
+
+    // Selected customer for update
+    private Customer SelectedCustomer = new Customer();
+
+    // Search input fields
+    private string SearchClientID { get; set; } = string.Empty;
+    private string SearchClientName { get; set; } = string.Empty;
+
+    // For the toast notification diplay message
+    private string displayMessage = string.Empty;
+
+
+    private void OpenAddClient()
+    {
+        ShowAddClient = true; // Opens the Add Client Page
+    }
+
+    private void OpenUpdateClient(Customer customer)
+    {
+        SelectedCustomer = customer;
+        ShowUpdateClient = true; // Opens the Add Update Page
+    }
+
+    // Closes the popup pages
+    private void HandleAddClientClose(bool isClosed)
+    {
+        ShowAddClient = false;
+    }
+    private void HandleUpdateClientClose(bool isClosed)
+    {
+        ShowUpdateClient = false;
+    }
+
+    // Filters the list of customers based on search input
+    // Returns customers that matches to any customer ID and/ or curtomer names
+    public void SearchForClient()
+    {
+        SearchCustomers = Customers.Where(c =>
+                (string.IsNullOrEmpty(SearchClientID) || c.CustomerID.ToString().Contains(SearchClientID, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(SearchClientName) || $"{c.FirstName} {c.LastName}".Contains(SearchClientName, StringComparison.OrdinalIgnoreCase))).ToList();
+
+    }
+
+    // Deletes a customer and refreshes the list to update the customers displayed on table
+    public void DeleteClient(int customerID)
+    {
+        dbConnection.DeleteClient(customerID);
+        HandleShowToast("Client deleted successfully!"); 
+        RefreshCustomers();
+    }
+
+    // Gets all customers when the Clients Page is initialized
+    protected override async Task OnInitializedAsync()
+    {
+        RefreshCustomers();
+    }
+
+    // Refreshes the customer list and updates the customers displayed
+    private void RefreshCustomers()
+    {
+        try
+        {
+            Customers = dbConnection.GetCustomers();
+            SearchCustomers = new List<Customer>(Customers);
+            StateHasChanged();
+        } catch(SqlException e)
+        {
+            HandleShowToast("Database connection failed.");
+        } catch(Exception e)
+        {
+            HandleShowToast(e.Message);
+        }
+
+    }
+
+    // Handles any updates on client
+    private void HandleClient()
+    {
+        RefreshCustomers(); 
+    }
+
+    // Displays the toast notification 
+    public void HandleShowToast(string message)
+    {
+        displayMessage = message;
+        StateHasChanged(); 
+    }
+
+    // Hides and clear the toast nofitication after 5 seconds
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!string.IsNullOrEmpty(displayMessage))
+        {
+            await Task.Delay(5000); 
+            displayMessage = null; 
+            StateHasChanged(); 
+        }
+    }
+}

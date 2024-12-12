@@ -1,0 +1,120 @@
+﻿@page "/equipment"
+
+@using Dialogs
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject CategoryService CategoryService
+@inject RentalEquipmentService RentalEquipmentService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-2">
+    <MudStack Spacing="3">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" class="d-flex pa-2">
+            <h1>Equipment</h1>
+            <MudButton
+                StartIcon="@Icons.Material.Rounded.Add"
+                Class="yellow darken-1 pa-3"
+                @onclick="OpenNewEquipmentDialogAsync">
+                Add Equipment
+            </MudButton>
+        </MudStack>
+        <MudGrid 
+            Spacing="6" 
+            Justify="Justify.Center" 
+            Class="">
+            <MudItem xs="6">
+                <MudTextField 
+                    @bind-Value="_searchValue"
+                    Class="flex-none"
+                    Label="Search equipment"
+                    Variant="Variant.Outlined"
+                    Adornment="Adornment.End"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    TextChanged="SearchEquipments"
+                    Clearable="true"
+                    Immediate="true" />
+            </MudItem>
+            <!-- All Categories Button -->
+            <MudItem xs="6" sm="3">
+                <MudSelect 
+                    FullWidth="true"
+                    T="string"
+                    MultiSelection="true"
+                    SelectAll="true"
+                    SelectAllText="Select All"
+                    @bind-Value="selectedCategoriesText"
+                    SelectedValuesChanged="@(values => OnSelectedValuesChanged(values, true))"
+                    MultiSelectionTextFunc="@(new Func<List<string>, string>(GetSelectCategoriesMultiSelectionText))"
+                    Label="Select Categories"
+                    AnchorOrigin="Origin.BottomLeft"
+                    TransformOrigin="Origin.TopLeft"
+                    Variant="Variant.Outlined"
+                    EndIcon="@Icons.Material.Filled.ArrowDropDown">
+                    @foreach(var category in Categories)
+                    {
+                        <MudSelectItem 
+                            Class="flex-none"
+                            T="string" 
+                            Value="@category.Name">
+                            @category.Name
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <!-- All Status Button -->
+            <MudItem xs="6" sm="3">
+                <MudSelect
+                    Class=""
+                    FullWidth="true"
+                    T="string"
+                    MultiSelection="true"
+                    SelectAll="true"
+                    SelectAllText="Select All"
+                    @bind-Value="selectedStatusText"
+                    SelectedValuesChanged="@(values => OnSelectedValuesChanged(values))"
+                    MultiSelectionTextFunc="@(new Func<List<string>, string>(GetSelectStatusMultiSelectionText))"
+                    Label="Select Status"
+                    AnchorOrigin="Origin.BottomLeft"
+                    TransformOrigin="Origin.TopLeft"
+                    Variant="Variant.Outlined"
+                    EndIcon="@Icons.Material.Filled.ArrowDropDown">
+                    @foreach(var status in statuses)
+                    {
+                        <MudSelectItem 
+                            Class="flex-none" 
+                            T="string" 
+                            Value="@status">
+                            @status
+                        </MudSelectItem>
+                    }
+            </MudSelect>
+            </MudItem>
+        </MudGrid>
+        <MudDataGrid
+            T="RentalEquipment"
+            Items="@SearchedEquipments"
+            Striped="true"
+            EditMode="DataGridEditMode.Form"
+            EditTrigger="DataGridEditTrigger.Manual">
+            <Columns>
+                <PropertyColumn Property="x => x.EquipmentId" Title="Equipment ID" Editable="false" />
+                <PropertyColumn Property="x => x.Name" Title="Name" />
+                <PropertyColumn Property="x => x.Category.Name" Title="Category" />
+                <PropertyColumn Property="x => x.Description" Title="Description" />
+                <PropertyColumn Property="x => x.DailyRate" Title="Daily Rate" />
+                <PropertyColumn Property="x => x.Status" Title="Status" />
+                <TemplateColumn CellClass="d-flex justify-end">
+                    <CellTemplate>
+                            @* Icon="@Icons.Material.Filled.Delete"  *@
+                        <MudIconButton 
+                            Size="@Size.Small" 
+                            Icon="@trash_can" 
+                            OnClick="@(() => RemoveRentalEquipment(@context.Item))" />
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    </MudStack>
+</MudContainer>
+
+@code {
+}

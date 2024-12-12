@@ -1,0 +1,140 @@
+﻿@*Final Project: Village Rental - Equipment Rental Management System with Database Connection (using SSMS)
+This project was completed by Gerazel Castro, Cassandra Crawford, and Guanhui Li on December 6, 2024.
+The program allows employees to login and to manage clients, apply discounts, process rentals, and update
+equipment details.*@
+
+@using FinalProject.Data
+@using Microsoft.Data.SqlClient
+@inject DatabaseConnection dbConnection
+
+@page "/dashboard"
+
+<h1>Dashboard</h1>
+<!--Shows the total revenue by calculating the sum of all rentals-->
+<div class="container">
+    <div class="col-12">
+        <div class="p-3 d-flex flex-column justify-content-center align-items-center dashboard-revenue">
+            <h2>Total Revenue: $<span>@totalRevenue</span></h2>
+        </div>
+    </div>
+</div>
+
+<div class="dc container">
+    <div class="row">
+        <!-- Column for the 3 boxes -->
+        <div class="col-md-3 col-sm-12 d-flex flex-column justify-content-between">
+            <!-- Total Clients -->
+            <div class="dashboard-count p-3 text-center d-flex flex-column dashboard-count justify-content-center align-items-center">
+                <h3 class="count-heading">Total Clients</h3>
+                <p class="count-text">@totalClients</p>
+            </div>
+            <!-- Active Rentals -->
+            <div class="dashboard-count p-3 text-center d-flex flex-column dashboard-count justify-content-center align-items-center">
+                <h3 class="count-heading">Active Rentals</h3>
+                <p class="count-text">@activeRentals</p>
+            </div>
+            <!-- Available Equipment -->
+            <div class="dashboard-count p-3 text-center d-flex flex-column dashboard-count justify-content-center align-items-center">
+                <h3 class="count-heading">Available Equipment</h3>
+                <p class="count-text">@availEquipment</p>
+            </div>
+        </div>
+
+        <!-- Column for the Chart -->
+        <div class="col-md-9 col-sm-12">
+            <div class="chart-container">
+                <MudChart ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="500px" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    public decimal totalRevenue;
+    public int totalClients;
+    public int activeRentals;
+    public int availEquipment;
+    public string[] XAxisLabels { get; set; }
+    public ChartOptions Options = new ChartOptions();
+    public List<ChartSeries> Series = new List<ChartSeries>();
+
+    // Gets all information when the Dashboard is initialized
+    protected override async Task OnInitializedAsync()
+    {
+        LoadTotalRevenue();
+        LoadTotalClients();
+        LoadActiveRentals();
+        LoadAvailableEquipments();
+
+        try
+        {
+            XAxisLabels = Enumerable.Range(0, 7).Select(offset => DateTime.Now.AddDays(-6 + offset).ToString("MM/dd")).ToArray();
+
+            // Fetch Y-axis data (daily total costs)
+            var dailyCosts = dbConnection.GetDailyTotalCost();
+
+            // Set the Series for the chart
+            Series = new List<ChartSeries>
+            {
+                new ChartSeries { Name = "Rental Sales in the Last 7 Days", Data = dailyCosts.Select(dc => (double)dc).ToArray() }
+            };
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+
+    // To get the total revenue from DB by calling the GetTotalRevenue() from DatabaseConnection
+    private void LoadTotalRevenue()
+    {
+        try
+        {
+            totalRevenue = dbConnection.GetTotalRevenue();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+
+    }
+
+    // To get the total number clients from DB
+    private void LoadTotalClients()
+    {
+        try
+        {
+            totalClients = dbConnection.GetTotalClients();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+
+    // To get the total number of active rentals from DB where return date is after current date
+    private void LoadActiveRentals()
+    {
+        try
+        {
+            activeRentals = dbConnection.GetActiveRentals();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+
+    // To get the total number of available equipments from DB
+    private void LoadAvailableEquipments()
+    {
+        try
+        {
+            availEquipment = dbConnection.GetTotalAvailEquip();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+}

@@ -1,0 +1,35 @@
+body[b-ikz0aae211] {
+}
+
+.dashboard-revenue[b-ikz0aae211] {
+    margin-top: 50px;
+    margin-bottom: 20px;
+    color: #FFF;
+    background-color: #193D58;
+}
+
+.dashboard-count[b-ikz0aae211] {
+    height: 150px;
+    width: 300px;
+    background-color: #FCD400;
+    border-radius: 10px;
+}
+
+.count-heading[b-ikz0aae211] {
+    margin-top: 20px;
+    font-family: Oswald;
+    font-size: 28px;
+    font-weight: 700;
+    color: #193D58;
+}
+
+.count-text[b-ikz0aae211] {
+    font-family: Montserrat;
+    font-size: 50px;
+    font-weight: 700;
+    color: #193D58;
+}
+
+.dc[b-ikz0aae211] {
+    padding-left: 40px;
+}

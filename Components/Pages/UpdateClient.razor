@@ -1,0 +1,156 @@
+﻿@using FinalProject.Data
+@using Microsoft.Data.SqlClient
+@using System.Text.RegularExpressions
+@inject DatabaseConnection dbConnection
+
+<!--Form for updating a client / Displays Client Information for update-->
+<div class="update-client-popup" style="@(ShowUpdateClient ? "display: block;" : "display: none;")">
+    <div class="update-client-content">
+        <form>
+            <div class="row g-3">
+                <!--Client ID-->
+                <div class="col-12">
+                    <label for="clientID" class="form-label">Client ID:</label>
+                    <input type="number" class="form-control" aria-label="Customer ID" id="clientID" name="firstName" disabled @bind="SelectedCustomer.CustomerID">
+                </div>
+                <!--First Name-->
+                <div class="col-12">
+                    <label for="firstName" class="form-label">First Name:</label>
+                    <input type="text" class="form-control" placeholder="Enter First Name.." aria-label="First Name" id="firstName" name="firstName" @bind="SelectedCustomer.FirstName">
+                </div>
+                <!--Last Name-->
+                <div class="col-12">
+                    <label for="lastName" class="form-label">Last Name:</label>
+                    <input type="text" class="form-control" placeholder="Enter Last Name.." aria-label="Last Name" id="lastName" name="lastName" @bind="SelectedCustomer.LastName">
+                </div>
+                <!--Contact Number-->
+                <div class="col-12">
+                    <label for="contactNumber" class="form-label">Contact Number:</label>
+                    <input type="text" class="form-control" placeholder="(999) 999-9999" aria-label="Contact Number" id="phoneNumber" name="phoneNumber" title="Format: (999) 999-9999" @bind="SelectedCustomer.PhoneNum">
+                </div>
+                <!--Email-->
+                <div class="col-12">
+                    <label for="eMail" class="form-label">Email:</label>
+                    <input type="email" class="form-control" placeholder="your.email@gmail.com" aria-label="Email" id="emailAdd" name="emailAd" title="Format: your.email@domain.com" @bind="SelectedCustomer.EMail">
+                </div>
+                <!--Client Status-->
+                <div class="col-md-6">
+                    <label for="clientStatus" class="form-label">Status:</label>
+                    <select id="inputStatus" class="form-select" name="clientStatus" @bind="SelectedCustomer.ClientStatus">
+                        <option selected></option>
+                        <option>Active</option>
+                        <option>Banned</option>
+                    </select>
+                </div>
+                <!--Discount-->
+                <div class="col-md-6">
+                    <label for="discount" class="form-label">Discount:</label>
+                    <select id="inputDiscount" class="form-select" name="clientDiscount" @bind="SelectedCustomer.Discount">
+                        <option selected></option>
+                        <option>5</option>
+                        <option>10</option>
+                        <option>15</option>
+                        <option>20</option>
+                    </select>
+                </div>
+                <!--Save and Cancel buttons-->
+                <div class="col-12 button-container">
+                    <button type="button" class="btn btn-warning save-button" @onclick="UpdateCustomer">SAVE</button>
+                    <button type="button" class="btn btn-outline-warning close-button" @onclick="CloseUpdateClient">CANCEL</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Customer SelectedCustomer { get; set; } // To bind the selected client details
+
+    [Parameter]
+    public bool ShowUpdateClient { get; set; } // Parameter to show/hide popup for Update Client page
+
+    [Parameter]
+    public EventCallback<bool> OnClose { get; set; } // Event callback triggered when popup for Update Client is closed
+
+    [Parameter]
+    public EventCallback OnUpdate { get; set; } // Event callback triggered when customer is updated successfully
+
+    [Parameter]
+    public EventCallback<string> OnShowToast { get; set; } // Event callback to show toast notification
+
+    private async Task UpdateCustomer()
+    {
+        try
+        {
+            // Validate client's details if not null or in valid format for Contact# and Email before updating the info to DB
+            if (string.IsNullOrEmpty(SelectedCustomer.FirstName))
+            {
+                throw new InvalidFirstNameException();
+            }
+            else if (string.IsNullOrEmpty(SelectedCustomer.LastName))
+            {
+                throw new InvalidLastNameException();
+            }
+            else if (string.IsNullOrEmpty(SelectedCustomer.PhoneNum))
+            {
+                throw new InvalidPhoneException();
+            }
+            else if (string.IsNullOrEmpty(SelectedCustomer.EMail))
+            {
+                throw new InvalidEmailException();
+            }
+            else if (!Regex.IsMatch(SelectedCustomer.EMail, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
+            {
+                throw new InvalidEmailException();
+            }
+            else if (!Regex.IsMatch(SelectedCustomer.PhoneNum, @"^\(\d{3}\) \d{3}-\d{4}$"))
+            {
+                throw new InvalidPhoneException();
+            }
+            else
+            {
+                // Updates client to the database
+                dbConnection.UpdateClient(SelectedCustomer);
+
+                // Nofify Client.razor component that client has been updated and show success message
+                await OnUpdate.InvokeAsync();
+                await OnShowToast.InvokeAsync("Client updated successfully!");
+
+                // Closes the popup for Add Client after adding the client
+                await CloseUpdateClient();
+            }
+        }
+        catch (InvalidFirstNameException e)
+        {
+            await OnShowToast.InvokeAsync(e.Message);
+        }
+        catch (InvalidLastNameException e)
+        {
+            await OnShowToast.InvokeAsync(e.Message);
+        }
+        catch (InvalidPhoneException e)
+        {
+            await OnShowToast.InvokeAsync(e.Message);
+        }
+        catch (InvalidEmailException e)
+        {
+            await OnShowToast.InvokeAsync(e.Message);
+        }
+        catch (SqlException e)
+        {
+            await OnShowToast.InvokeAsync($"Database Error: {e.Message}"); // Handles database specific errors
+        }
+        catch (Exception e)
+        {
+            await OnShowToast.InvokeAsync($"System Error: {e.Message}"); // For generic errors
+        }
+
+    }
+
+    // To close the update client popup
+    private async Task CloseUpdateClient()
+    {
+        await OnClose.InvokeAsync(false);
+    }
+}

@@ -1,0 +1,53 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\crfel\\Downloads\\OOP_Final_Project_12_11\\OOP_Final_Project_12_11\\OOP_FINAL_PROJ_VILLAGE_RENTAL\\obj\\Debug\\net8.0-windows10.0.19041.0\\win10-x64\\scopedcss\\bundle\\FinalProject.styles.css",
+      "PackagePath": "staticwebassets\\FinalProject.styles.css"
+    },
+    {
+      "Id": "C:\\Users\\crfel\\Downloads\\OOP_Final_Project_12_11\\OOP_Final_Project_12_11\\OOP_FINAL_PROJ_VILLAGE_RENTAL\\wwwroot\\css\\app.css",
+      "PackagePath": "staticwebassets\\css\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\crfel\\Downloads\\OOP_Final_Project_12_11\\OOP_Final_Project_12_11\\OOP_FINAL_PROJ_VILLAGE_RENTAL\\wwwroot\\css\\bootstrap\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\css\\bootstrap\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Users\\crfel\\Downloads\\OOP_Final_Project_12_11\\OOP_Final_Project_12_11\\OOP_FINAL_PROJ_VILLAGE_RENTAL\\wwwroot\\css\\bootstrap\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\css\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\crfel\\Downloads\\OOP_Final_Project_12_11\\OOP_Final_Project_12_11\\OOP_FINAL_PROJ_VILLAGE_RENTAL\\wwwroot\\favicon.png",
+      "PackagePath": "staticwebassets\\favicon.png"
+    },
+    {
+      "Id": "C:\\Users\\crfel\\Downloads\\OOP_Final_Project_12_11\\OOP_Final_Project_12_11\\OOP_FINAL_PROJ_VILLAGE_RENTAL\\wwwroot\\fonts\\Montserrat.ttf",
+      "PackagePath": "staticwebassets\\fonts\\Montserrat.ttf"
+    },
+    {
+      "Id": "C:\\Users\\crfel\\Downloads\\OOP_Final_Project_12_11\\OOP_Final_Project_12_11\\OOP_FINAL_PROJ_VILLAGE_RENTAL\\wwwroot\\fonts\\Oswald.ttf",
+      "PackagePath": "staticwebassets\\fonts\\Oswald.ttf"
+    },
+    {
+      "Id": "C:\\Users\\crfel\\Downloads\\OOP_Final_Project_12_11\\OOP_Final_Project_12_11\\OOP_FINAL_PROJ_VILLAGE_RENTAL\\wwwroot\\index.html",
+      "PackagePath": "staticwebassets\\index.html"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-windows10.0.19041.0\\win10-x64\\staticwebassets\\msbuild.FinalProject.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-windows10.0.19041.0\\win10-x64\\staticwebassets\\msbuild.build.FinalProject.props",
+      "PackagePath": "build\\FinalProject.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-windows10.0.19041.0\\win10-x64\\staticwebassets\\msbuild.buildMultiTargeting.FinalProject.props",
+      "PackagePath": "buildMultiTargeting\\FinalProject.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-windows10.0.19041.0\\win10-x64\\staticwebassets\\msbuild.buildTransitive.FinalProject.props",
+      "PackagePath": "buildTransitive\\FinalProject.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

@@ -1,0 +1,469 @@
+﻿@page "/rentals"
+@using FinalProject.Data
+@using System.Data
+@using FinalProject.Data.Models
+@inject DatabaseConnection DatabaseConnection
+@inject RentalService RentalService
+
+<div class="main-content">
+    <h1>Rentals</h1>
+
+    <!-- Client ID Search Section -->
+    <div class="search-section">
+        <label>Client ID:</label>
+        <div class="search-box">
+            <input type="text"
+                   value="@customerId"
+                   @onchange="@((e) => customerId = e.Value?.ToString() ?? string.Empty)"
+                   placeholder="Enter Client ID..." />
+            @if (!string.IsNullOrEmpty(customerId))
+            {
+                @if (isValidCustomer)
+                {
+                    <span class="check-icon">✓</span>
+                }
+                else
+                {
+                    <span class="cross-icon">✗</span>
+                }
+            }
+        </div>
+        <button class="search-btn" @onclick="SearchClient">Search</button>
+    </div>
+
+    <!-- Equipment List -->
+    <div class="content-layout">
+        <div class="table-container">
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        <th>Equipment ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Daily Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in equipmentList)
+                    {
+                        <tr @onclick="() => SelectItem(item)">
+                            <td>@item.Id</td>
+                            <td>@item.Name</td>
+                            <td>@item.Category</td>
+                            <td>$@item.Rate.ToString("F2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Rental Form -->
+        <div class="rental-form">
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-message">
+                    @errorMessage
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="success-message">
+                    @successMessage
+                </div>
+            }
+
+            <h2>RENT NOW</h2>
+            <div class="form-group">
+                <label>EQUIPMENT ID:</label>
+                <input type="text" @bind="selectedEquipmentId" disabled />
+            </div>
+
+            <div class="form-group">
+                <label>EQUIPMENT NAME:</label>
+                <input type="text" @bind="selectedEquipmentName" disabled />
+            </div>
+
+            <div class="form-group">
+                <label>RENTAL DATE:</label>
+                <input type="date" @bind="rentalDate" @bind:after="UpdateRentalCost" />
+            </div>
+
+            <div class="form-group">
+                <label>RETURN DATE:</label>
+                <input type="date" @bind="returnDate" @bind:after="UpdateRentalCost" />
+            </div>
+
+            <div class="total-cost">
+                TOTAL COST: $@totalCost.ToString("F2")
+            </div>
+
+            <div class="button-group">
+                <button class="rent-now-btn" @onclick="ProcessRental">Rent Now</button>
+                <button class="clear-btn" @onclick="ClearForm">Clear</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .main-content {
+        padding: 20px;
+        min-height: 100vh;
+    }
+
+    h1 {
+        color: #1B3349;
+        margin-bottom: 20px;
+    }
+
+    .content-layout {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 15px;
+        min-height: 100%;
+        overflow: auto;
+    }
+
+    .search-section {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .search-box {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .search-box input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+    .check-icon {
+        color: green;
+        font-size: 18px;
+    }
+
+    .cross-icon {
+        color: red;
+        font-size: 18px;
+    }
+
+
+    .search-btn {
+        background-color: #1B3349;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .table-container {
+        flex: 1;
+    }
+
+    .equipment-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .equipment-table th,
+        .equipment-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .equipment-table tr:hover {
+            background-color: #f5f5f5;
+            cursor: pointer;
+        }
+
+    .rental-form {
+        width: 100%;
+        max-width: 350px;
+        min-width: 250px;
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 4px;
+        overflow-y: auto;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+    .total-cost {
+        text-align: right;
+        font-weight: bold;
+        margin: 20px 0;
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .rent-now-btn {
+        background-color: #ffd700;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .clear-btn {
+        background-color: #1B3349;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .error-message {
+        color: red;
+        background-color: #ffe6e6;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+
+    .success-message {
+        color: green;
+        background-color: #e6ffe6;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+</style>
+
+@code {
+    // Equipment data model
+    private class RentalItem
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public decimal Rate { get; set; }
+        public bool IsAvailable { get; set; } = true;
+    }
+
+    // Properties for the rental form
+    private string customerId = string.Empty;
+    private bool isValidCustomer;
+    private List<RentalItem> equipmentList = new();
+    private string selectedEquipmentId = string.Empty;
+    private string selectedEquipmentName = string.Empty;
+    private DateTime rentalDate = DateTime.Today;
+    private DateTime returnDate = DateTime.Today;
+    private decimal totalCost = 0;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+
+    /// <summary>
+    /// Initialize the page and load equipment list
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadEquipmentList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to load initial data";
+            Console.WriteLine($"Error in initialization: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Load available equipment from database
+    /// </summary>
+    private async Task LoadEquipmentList()
+    {
+        try
+        {
+            var dataTable = DatabaseConnection.GetAllEquipment();
+            equipmentList.Clear();
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                equipmentList.Add(new RentalItem
+                    {
+                        Id = row["equipment_id"].ToString() ?? string.Empty,
+                        Name = row["name"].ToString() ?? string.Empty,
+                        Category = row["category_id"].ToString() ?? string.Empty,
+                        Rate = Convert.ToDecimal(row["daily_rental_cost"])
+                    });
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to load equipment list";
+            Console.WriteLine($"Error loading equipment: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Validate customer ID and load their information
+    /// </summary>
+    private async Task SearchClient()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(customerId))
+            {
+                errorMessage = "Please enter a customer ID";
+                return;
+            }
+
+            // Check customer status through rental service
+            isValidCustomer = RentalService.CheckCustomerStatus(customerId);
+
+            if (isValidCustomer)
+            {
+                errorMessage = string.Empty;
+                successMessage = "Valid customer ID";
+                await LoadEquipmentList();
+            }
+            else
+            {
+                errorMessage = "Invalid customer ID";
+                successMessage = string.Empty;
+                equipmentList.Clear();
+                ClearForm();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error validating customer";
+            Console.WriteLine($"Error in customer search: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Select equipment from the list and update rental cost
+    /// </summary>
+    private void SelectItem(RentalItem item)
+    {
+        selectedEquipmentId = item.Id;
+        selectedEquipmentName = item.Name;
+        UpdateRentalCost();
+    }
+
+    /// <summary>
+    /// Calculate and update the total rental cost
+    /// </summary>
+    private void UpdateRentalCost()
+    {
+        errorMessage = string.Empty;
+
+        if (returnDate < rentalDate)
+        {
+            errorMessage = "Return date cannot be earlier than rental date";
+            totalCost = 0;
+            return;
+        }
+
+        var selectedItem = equipmentList.FirstOrDefault(e => e.Id == selectedEquipmentId);
+        if (selectedItem != null)
+        {
+            var days = (returnDate - rentalDate).Days + 1;
+            totalCost = selectedItem.Rate * days;
+        }
+    }
+
+    /// <summary>
+    /// Process the rental request and create rental record
+    /// </summary>
+    private async Task ProcessRental()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+
+        // Validate input
+        if (!isValidCustomer)
+        {
+            errorMessage = "Please select a valid customer";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(selectedEquipmentId))
+        {
+            errorMessage = "Please select equipment";
+            return;
+        }
+
+        if (returnDate < rentalDate)
+        {
+            errorMessage = "Return date cannot be earlier than rental date";
+            return;
+        }
+
+        try
+        {
+            var success = RentalService.CreateRental(
+                customerId,
+                selectedEquipmentId,
+                rentalDate,
+                returnDate
+            );
+
+            if (success)
+            {
+                successMessage = "Rental created successfully!";
+                ClearForm();
+                await LoadEquipmentList();
+                StateHasChanged();  //  UI
+            }
+            else
+            {
+                errorMessage = "Failed to create rental";
+                StateHasChanged();  // UI
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to process rental";
+            Console.WriteLine($"Error processing rental: {ex.Message}");
+            StateHasChanged();  // UI
+        }
+    }
+
+    /// <summary>
+    /// Clear form fields and reset the form
+    /// </summary>
+    private void ClearForm()
+    {
+        selectedEquipmentId = string.Empty;
+        selectedEquipmentName = string.Empty;
+        rentalDate = DateTime.Today;
+        returnDate = DateTime.Today;
+        totalCost = 0;
+    }
+}

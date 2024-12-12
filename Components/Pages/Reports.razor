@@ -1,0 +1,202 @@
+﻿@page "/reports"
+@using Microsoft.Maui.Controls
+@using FinalProject.Data
+@using FinalProject.Data.Models
+@inject DatabaseConnection DbConnection
+
+<!-- Main container -->
+<div class="report-container">
+    <h1>Reports</h1>
+
+    <!-- Filter section with date inputs -->
+    <div class="filter-section">
+        <div class="date-range">
+            <input type="date"
+                   value="@StartDate.ToString("yyyy-MM-dd")"
+                   @onchange="@((args) => OnStartDateChanged(args.Value.ToString()))" />
+            <input type="date"
+                   value="@EndDate.ToString("yyyy-MM-dd")"
+                   @onchange="@((args) => OnEndDateChanged(args.Value.ToString()))" />
+        </div>
+        <button class="btn btn-secondary" @onclick="ClearFilters">Clear</button>
+    </div>
+
+    <!-- Report data table -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Rental ID</th>
+                <th>Rental Date</th>
+                <th>Return Date</th>
+                <th>Equipment Details</th>
+                <th>Rental Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in reportData)
+            {
+                <tr>
+                    <td>@item.RentalId</td>
+                    <td>@item.RentalDate.ToString("yyyy-MM-dd")</td>
+                    <td>@item.ReturnDate.ToString("yyyy-MM-dd")</td>
+                    <td>@item.EquipmentDetails</td>
+                    <td>@item.RentalCost.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Pagination controls -->
+    <div class="pagination">
+        <button class="btn btn-secondary"
+                @onclick="@(() => HandlePageChange(currentPage - 1))"
+                disabled="@(currentPage <= 1)">
+            Previous
+        </button>
+        <span>@currentPage</span>
+        <button class="btn btn-secondary"
+                @onclick="@(() => HandlePageChange(currentPage + 1))"
+                disabled="@(currentPage >= totalPages)">
+            Next
+        </button>
+    </div>
+</div>
+
+<style>
+    /* Container styles */
+    .report-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+        /* Header styles */
+        .report-container h1 {
+            color: #23394d;
+            margin-bottom: 24px;
+        }
+
+    /* Filter section layout */
+    .filter-section {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .date-range {
+        display: flex;
+        gap: 12px;
+    }
+
+        /* Input styles */
+        .date-range input {
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 8px 12px;
+        }
+
+    /* Table styles */
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+        .table th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 500;
+            text-align: left;
+            padding: 12px 16px;
+        }
+
+        .table td {
+            padding: 12px 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+    /* Button styles */
+    .btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 500;
+        background-color: #1B3349;
+    }
+
+    .btn-secondary {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    /* Pagination styles */
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 24px;
+    }
+
+        .pagination span {
+            color: #475569;
+        }
+</style>
+
+@code {
+    // Date range state
+    private DateTime StartDate = DateTime.Today.AddMonths(-1);
+    private DateTime EndDate = DateTime.Today;
+
+    // Report data and pagination state
+    private List<ReportItem> reportData = new();
+    private int currentPage = 1;
+    private int totalPages = 1;
+
+    // Load initial data on component initialization
+    protected override async Task OnInitializedAsync() => await LoadReportData();
+
+    // Handle start date change
+    private void OnStartDateChanged(string value)
+    {
+        if (DateTime.TryParse(value, out DateTime date))
+        {
+            StartDate = date;
+            LoadReportData();
+        }
+    }
+
+    // Handle end date change
+    private void OnEndDateChanged(string value)
+    {
+        if (DateTime.TryParse(value, out DateTime date))
+        {
+            EndDate = date;
+            LoadReportData();
+        }
+    }
+
+    // Load report data from database
+    private async Task LoadReportData()
+    {
+        reportData = DbConnection.GetRentalReport(StartDate, EndDate);
+    }
+
+    // Reset filters to default values
+    private async Task ClearFilters()
+    {
+        StartDate = DateTime.Today.AddMonths(-1);
+        EndDate = DateTime.Today;
+        await LoadReportData();
+    }
+
+    // Handle pagination
+    private async Task HandlePageChange(int newPage)
+    {
+        currentPage = newPage;
+        await LoadReportData();
+    }
+}
